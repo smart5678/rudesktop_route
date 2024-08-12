@@ -42,7 +42,7 @@ class Cursor:
 class Field:
     def __init__(self):
         self.points: dict[(int, int): int] = dict()
-        self.points[(0, 0)] = 0
+        self.max_size = 0
 
 
 class Path:
@@ -76,9 +76,11 @@ class Path:
             bitmap[point[0] - self.min_x][point[1] - self.min_y] += 1
 
         bitmap = bitmap * 254 / bitmap.max()
-
-        img = Image.fromarray(np.astype(bitmap, np.uint8), mode='L')
-        img.show()
+        bw = bitmap > 1
+        bw_img = Image.fromarray(np.uint8(bw * 255), mode='L')
+        bw_img.save('bw.png')
+        grayscale_img = Image.fromarray(np.astype(bitmap, np.uint8), mode='L')
+        grayscale_img.save('grayscale.png')
 
 
 path = Path()
@@ -91,15 +93,17 @@ while True:
 
     if field.points.get((cursor.x, cursor.y), 0) == 0:
         field.points[(cursor.x, cursor.y)] = 1
+        if len(field.points) > field.max_size:
+            field.max_size = len(field.points)
         cursor.rotate_right()
     else:
-        field.points[(cursor.x, cursor.y)] = 0
+        del field.points[(cursor.x, cursor.y)]
         cursor.rotate_left()
 
     cursor.move()
     path.add_point(cursor.x, cursor.y)
 
 
-print(f'Количество пройденных точек: {len(field.points)}')
+print(f'Максимальный размер буфера поля: {field.max_size}')
 print(f'Длинна маршрута: {len(path.points)}')
 path.plot()
