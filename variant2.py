@@ -75,35 +75,37 @@ class Path:
         for point in self.points:
             bitmap[point[0] - self.min_x][point[1] - self.min_y] += 1
 
-        bitmap = bitmap * 254 / bitmap.max()
-        bw = bitmap > 1
+        bitmap = 255 - bitmap * 254 / bitmap.max()
+        bw = bitmap == 255
+
         bw_img = Image.fromarray(np.uint8(bw * 255), mode='L')
         bw_img.save('bw.png')
         grayscale_img = Image.fromarray(np.astype(bitmap, np.uint8), mode='L')
         grayscale_img.save('grayscale.png')
 
 
-path = Path()
-field = Field()
-cursor = Cursor()
+if __name__ == '__main__':
+    path = Path()
+    field = Field()
+    cursor = Cursor()
 
-while True:
-    if cursor.x <= -512 or cursor.x >= 512 or cursor.y <= -512 or cursor.y >= 512:
-        break
+    while True:
+        if cursor.x <= -512 or cursor.x >= 512 or cursor.y <= -512 or cursor.y >= 512:
+            break
 
-    if field.points.get((cursor.x, cursor.y), 0) == 0:
-        field.points[(cursor.x, cursor.y)] = 1
-        if len(field.points) > field.max_size:
-            field.max_size = len(field.points)
-        cursor.rotate_right()
-    else:
-        del field.points[(cursor.x, cursor.y)]
-        cursor.rotate_left()
+        if field.points.get((cursor.x, cursor.y), 0) == 0:
+            field.points[(cursor.x, cursor.y)] = 1
+            if len(field.points) > field.max_size:
+                field.max_size = len(field.points)
+            cursor.rotate_right()
+        else:
+            del field.points[(cursor.x, cursor.y)]
+            cursor.rotate_left()
 
-    cursor.move()
-    path.add_point(cursor.x, cursor.y)
+        cursor.move()
+        path.add_point(cursor.x, cursor.y)
 
 
-print(f'Максимальный размер буфера поля: {field.max_size}')
-print(f'Длинна маршрута: {len(path.points)}')
-path.plot()
+    print(f'Максимальный размер буфера поля: {field.max_size}')
+    print(f'Длинна маршрута: {len(path.points)}')
+    path.plot()
